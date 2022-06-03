@@ -12,11 +12,11 @@ class snake_game:
         self.dis_width = w
         self.dis_height = h
     
-        self.snake1_x = self.dis_width/3
-        self.snake1_y = self.dis_height/3
+        self.snake1_x = 100
+        self.snake1_y = 100
 
-        self.snake2_x = self.dis_width*2/3
-        self.snake2_y = self.dis_height*2/3
+        self.snake2_x = 500
+        self.snake2_y = 500
 
         self.snake_block = 10
 
@@ -95,11 +95,11 @@ class snake_game:
             self.snake2_x += self.x2_change
             self.snake2_y += self.y2_change
 
-            if self.snake1_x >= self.dis_width or self.snake1_x < 0 or self.snake1_y >= self.dis_height or self.snake1_y < 0:
-                game_over = True
+            # if self.snake1_x >= self.dis_width or self.snake1_x < 0 or self.snake1_y >= self.dis_height or self.snake1_y < 0:
+            #     game_over = True
             
-            if self.snake2_x >= self.dis_width or self.snake2_x < 0 or self.snake2_y >= self.dis_height or self.snake2_y < 0:
-                game_over = True
+            # if self.snake2_x >= self.dis_width or self.snake2_x < 0 or self.snake2_y >= self.dis_height or self.snake2_y < 0:
+            #     game_over = True
 
             self.dis.fill(white)
             pygame.draw.rect(self.dis, black, [foodx, foody, self.snake_block, self.snake_block])
@@ -111,13 +111,24 @@ class snake_game:
             if len(snake2_list) > self.snake2_length:
                 del snake2_list[0]
 
-            for x in snake1_list[:-1]:
-                if x == (self.snake1_x, self.snake1_y) or x == (self.snake2_x, self.snake2_y):
-                    game_over = True
+            # suicide
 
+            for x in snake1_list[:-1]:
+                if x == (self.snake1_x, self.snake1_y):
+                    game_over = True
             
             for x in snake2_list[:-1]:
-                if x == (self.snake1_x, self.snake1_y) or x == (self.snake2_x, self.snake2_y):
+                if x == (self.snake2_x, self.snake2_y):
+                    game_over = True
+
+            # bump into others
+            
+            for x in snake1_list:
+                if x == snake2_list[-1]:
+                    game_over = True
+
+            for x in snake2_list:
+                if x == snake1_list[-1]:
                     game_over = True
 
             # pygame.draw.rect(dis, blue, [x1, y1, 10, 10])
