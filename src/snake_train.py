@@ -15,7 +15,7 @@ class Direction(Enum):
 
 class snake_game:
 
-    def __init__(self, w=800, h=600): # initialize pygame envrionment
+    def __init__(self, w=200, h=150): # initialize pygame envrionment
        
 
         # boundary w/h
@@ -28,11 +28,11 @@ class snake_game:
 
         # initial place of snake 1 and snake 2 and food // should be random
 
-        self.snake1_x = 100
-        self.snake1_y = 100
+        self.snake1_x = 50
+        self.snake1_y = 50
 
-        self.snake2_x = 500
-        self.snake2_y = 500
+        self.snake2_x = 100
+        self.snake2_y = 100
         
         self.score1 = 0
         self.score2 = 0
@@ -109,11 +109,11 @@ class snake_game:
         self.snake1_list = []
         self.snake2_list = []
 
-        self.snake1_x = 100
-        self.snake1_y = 100
+        self.snake1_x = 50
+        self.snake1_y = 50
 
-        self.snake2_x = 500
-        self.snake2_y = 500
+        self.snake2_x = 100
+        self.snake2_y = 100
 
         self.score1 = 0
         self.score2 = 0
@@ -177,10 +177,10 @@ class snake_game:
         reward1 = 0
         reward2 = 0
         if self.snake1_x >= self.dis_width or self.snake1_x < 0 or self.snake1_y >= self.dis_height or self.snake1_y < 0:
-            reward1 = -10
+            reward1 = -20
         
         if self.snake2_x >= self.dis_width or self.snake2_x < 0 or self.snake2_y >= self.dis_height or self.snake2_y < 0:
-            reward2 = -10
+            reward2 = -20
 
         return reward1, reward2
 
@@ -300,30 +300,30 @@ class snake_game:
         elif food == 2 and not game_over:
             reward2 = 10
 
-        return game_over, reward1, reward2
+        return reward1, reward2, game_over
 
 
 
 if __name__ == '__main__':
     game = snake_game()
     
-    game_over = False
+    done = False
 
     
     while True:
-        while not game_over:
+        while not done:
         # game loop
             action1 = [0, 0, 0]
             action2 = [0, 0, 0]
             action1[random.randint(0,2)] = 1
             action2[random.randint(0,2)] = 1
-            game_over, reward1, reward2 = game.play(action1, action2)
+            reward1, reward2, done  = game.play(action1, action2)
             print(reward1, reward2)
             game.get_snake_vision()
         print('Score1: ', game.score1, '\nScore2: ', game.score2)
         time.sleep(2)
         game.reset()
-        game_over = False
+        done = False
 
 # action arguments: [straight, right, left]
 # return arugments: game_over, reward1, reward2
