@@ -130,7 +130,7 @@ def train():
         action2[random.randint(0,2)] = 1
 
         # reward, done, score = game.play(action1, action2)
-        reward1, reward2, done = game.play(action1, action2)
+        reward1, reward2, done = game.play(action1)
         state_new = agent1.get_state(game)
 
         # train short memory

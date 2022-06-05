@@ -128,7 +128,7 @@ class snake_game:
         mesg = font_style.render(msg, True, color)
         self.dis.blit(mesg, [self.dis_width/2-75, self.dis_height/2-30])
 
-    def _move(self, action1, action2):
+    def _move(self, action1, action2=None):
         clock_wise = [Direction.RIGHT, Direction.DOWN, Direction.LEFT, Direction.UP]
         idx = clock_wise.index(self.direction1)
 
@@ -163,15 +163,15 @@ class snake_game:
             self.snake1_y += self.snake_block
         elif self.direction1 == Direction.UP:
             self.snake1_y -= self.snake_block
-
-        if self.direction2 == Direction.RIGHT:
-            self.snake2_x += self.snake_block
-        elif self.direction2 == Direction.LEFT:
-            self.snake2_x -= self.snake_block
-        elif self.direction2 == Direction.DOWN:
-            self.snake2_y += self.snake_block
-        elif self.direction2 == Direction.UP:
-            self.snake2_y -= self.snake_block
+        if action2 is not None:
+            if self.direction2 == Direction.RIGHT:
+                self.snake2_x += self.snake_block
+            elif self.direction2 == Direction.LEFT:
+                self.snake2_x -= self.snake_block
+            elif self.direction2 == Direction.DOWN:
+                self.snake2_y += self.snake_block
+            elif self.direction2 == Direction.UP:
+                self.snake2_y -= self.snake_block
 
     def _boundary(self):
         reward1 = 0
@@ -231,7 +231,7 @@ class snake_game:
             return 2
         return 0
     
-    def play(self, action1, action2):
+    def play(self, action1, action2=None):
         white=(255, 255, 255)
         black=(0, 0, 0)
         blue=(0, 0, 255)
