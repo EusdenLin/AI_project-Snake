@@ -43,12 +43,12 @@ class snake_game:
         self.foodx = round(random.randrange(0, self.dis_width - self.snake_block) / 10.0) * 10.0
         self.foody = round(random.randrange(0, self.dis_height - self.snake_block) / 10.0) * 10.0
 
-
         # the initial direction of the snakes
 
         self.direction1 = Direction.RIGHT
         self.direction2 = Direction.RIGHT
 
+        self.vision_size = 1
 
         # speed of snake 
         self.snake1_list = []
@@ -60,6 +60,45 @@ class snake_game:
 
         self.dis=pygame.display.set_mode((self.dis_width,self.dis_height))
         pygame.display.set_caption("Snake game")
+
+    def get_snake_vision(self):
+        snake_map = np.zeros((self.dis_width//self.snake_block, self.dis_height//self.snake_block))
+        for x in self.snake1_list:
+            snake_map[x[0]//10][x[1]//10] = 1
+        for x in self.snake2_list:
+            snake_map[x[0]//10][x[1]//10] = 2
+        snake_map[self.snake1_x//10][self.snake1_y//10] = 3 # snake1's head
+        snake_map[self.snake2_x//10][self.snake2_y//10] = 4 # snake2's head
+
+        # 0: ground, -1: out of bound, 1: snake1's body, 2: snake2's body, 3: snake1's head, 4: snake2's head
+
+        print(self.snake1_x//10-self.vision_size, self.snake1_x//10+self.vision_size)
+        vision1 = np.full((self.vision_size*2+1, self.vision_size*2+1), -1)
+        vision2 = np.full((self.vision_size*2+1, self.vision_size*2+1), -1)
+        x = 0
+        for i in range(self.snake1_x//10-self.vision_size,self.snake1_x//10+self.vision_size+1):
+            y = 0
+            if i >= 60 or i<0:
+                continue
+            for j in range(self.snake1_y//10-self.vision_size,self.snake1_y//10+self.vision_size+1):
+                if j >= 60 or j<0:
+                    break
+                vision1[x][y] = snake_map[i][j]
+                y += 1
+            x += 1
+        x = 0
+        for i in range(self.snake2_x//10-self.vision_size,self.snake2_x//10+self.vision_size+1):
+            y = 0
+            if i >= 60 or i<0:
+                continue
+            for j in range(self.snake2_y//10-self.vision_size,self.snake2_y//10+self.vision_size+1):
+                if j >= 60 or j<0:
+                    break
+                vision2[x][y] = snake_map[i][j]
+                y += 1
+            x += 1
+
+        return vision1, vision2
 
     def reset(self):
         self.direction1 = Direction.RIGHT
@@ -145,26 +184,37 @@ class snake_game:
 
         return reward1, reward2
 
-    def _collision(self): # bump into others or suicide
+    def _collision(self, next_position=None): # bump into others or suicide, next position: (x, y)
         reward1 = 0
         reward2 = 0
+        if next_position is None:
+            for x in self.snake2_list:
+                if x == self.snake1_list[-1]: # snake1's head
+                    reward1 = -10
+            for x in self.snake1_list:
+                if x == self.snake2_list[-1]: # snake2's head
+                    reward2 = -10
 
-        for x in self.snake2_list:
-            if x == self.snake1_list[-1]: # snake1's head
-                reward1 = -10
-        for x in self.snake1_list:
-            if x == self.snake2_list[-1]: # snake2's head
-                reward2 = -10
+            # suicide
+            for x in self.snake1_list[:-1]:
+                if x == (self.snake1_x, self.snake1_y):
+                    reward1 = -10
+            for x in self.snake2_list[:-1]:
+                if x == (self.snake2_x, self.snake2_y):
+                    reward2 = -10
+            return reward1, reward2
 
-        # suicide
-        for x in self.snake1_list[:-1]:
-            if x == (self.snake1_x, self.snake1_y):
-                reward1 = -10
-        for x in self.snake2_list[:-1]:
-            if x == (self.snake2_x, self.snake2_y):
-                reward2 = -10
-    
-        return reward1, reward2
+        else:
+            for x in self.snake2_list:
+                if x == next_position: 
+                    return True
+            for x in self.snake1_list:
+                if x == next_position: 
+                    return True
+            if next_position[0] >= self.dis_width or next_position[0] < 0 or next_position[1] >= self.dis_height or next_position[0] < 0: # out of bound
+                return True
+
+            return False
 
     def _found_food(self):
         if self.snake1_x == self.foodx and self.snake1_y == self.foody:
@@ -191,8 +241,6 @@ class snake_game:
         reward1 = 0
         reward2 = 0
         game_over = False
-
-        
     
         self.frame_iteration += 1
 
@@ -202,6 +250,8 @@ class snake_game:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 game_over = True
+                pygame.quit()
+                quit()
             
 
         self._move(action1, action2)
@@ -239,7 +289,6 @@ class snake_game:
             #print(self.snake_length)
             pygame.draw.rect(self.dis, green, [x[0], x[1], self.snake_block, self.snake_block])
 
-
         # if snake eats the food -> generate a food position randomly
 
         pygame.display.update() 
@@ -270,7 +319,7 @@ if __name__ == '__main__':
             action2[random.randint(0,2)] = 1
             game_over, reward1, reward2 = game.play(action1, action2)
             print(reward1, reward2)
-
+            game.get_snake_vision()
         print('Score1: ', game.score1, '\nScore2: ', game.score2)
         time.sleep(2)
         game.reset()
