@@ -32,8 +32,8 @@ class snake_game:
         self.snake1_x = random.randint(0, self.dis_width//10 - self.snake_block//10) * 10
         self.snake1_y = random.randint(0, self.dis_height//10 - self.snake_block//10) * 10
 
-        self.snake2_x = random.randint(0, self.dis_width//10 - self.snake_block//10) * 10
-        self.snake2_y = random.randint(0, self.dis_height//10 - self.snake_block//10) * 10
+        self.snake2_x = 0
+        self.snake2_y = 0
         
         self.score1 = 0
         self.score2 = 0
@@ -48,7 +48,7 @@ class snake_game:
         self.direction1 = Direction.RIGHT
         self.direction2 = Direction.RIGHT
 
-        self.vision_size = 1
+        self.vision_size = 10
 
         # speed of snake 
         self.snake1_list = []
@@ -61,56 +61,50 @@ class snake_game:
         self.dis=pygame.display.set_mode((self.dis_width,self.dis_height))
         pygame.display.set_caption("Snake game")
 
-    def get_snake_vision(self, snake_num):
+    def get_snake_vision(self):
         # if self.snake1_x >= self.dis_width or self.snake1_x < 0 or self.snake1_y >= self.dis_height or self.snake1_y < 0:
         #     return None, None
 
         # if self.snake2_x >= self.dis_width or self.snake2_x < 0 or self.snake2_y >= self.dis_height or self.snake2_y < 0:
-        #     return None, None 
+        #     return None, None
+
         snake_map = np.zeros((self.dis_width//self.snake_block, self.dis_height//self.snake_block))
-        snake_map[int(self.foodx)//self.snake_block, int(self.foody)//self.snake_block] = 2
-        if snake_num == 1:
+        for x in self.snake1_list:
+            snake_map[x[0]//10][x[1]//10] = 1
+        for x in self.snake2_list:
+            snake_map[x[0]//10][x[1]//10] = 2
 
-            for x in self.snake1_list:
-                snake_map[x[0]//10][x[1]//10] = 1
-            snake_map[int(self.snake1_x//10)][int(self.snake1_y//10)] = 1 # snake1's head
-            # 0: ground, -1: out of bound, 1: snake1's body, 2: snake2's body, 3: snake1's head, 4: snake2's head
-            vision = np.full((self.vision_size*2+1, self.vision_size*2+1), 1)
-            x = 0
-            for i in range(self.snake1_x//10-self.vision_size,self.snake1_x//10+self.vision_size+1):
-                y = 0
-                if i >= self.dis_width//self.snake_block or i<0:
-                    x += 1
-                    continue
-                for j in range(self.snake1_y//10-self.vision_size,self.snake1_y//10+self.vision_size+1):
-                    if j >= self.dis_height//self.snake_block or j<0:
-                        y += 1
-                        continue
-                    vision[x][y] = snake_map[i][j]
-                    y += 1
-                x += 1
-        
+        snake_map[int(self.snake1_x//10)][int(self.snake1_y//10)] = 3 # snake1's head
+        snake_map[int(self.snake2_x//10)][int(self.snake2_y//10)] = 4 # snake2's head
 
-        if snake_num == 2:
+        # 0: ground, -1: out of bound, 1: snake1's body, 2: snake2's body, 3: snake1's head, 4: snake2's head
 
-            for x in self.snake2_list:
-                snake_map[x[0]//10][x[1]//10] = 1
-            snake_map[int(self.snake2_x//10)][int(self.snake2_y//10)] = 1 # snake2's head
-            vision = np.full((self.vision_size*2+1, self.vision_size*2+1), -1)
-            x = 0
-            for i in range(self.snake2_x//10-self.vision_size,self.snake2_x//10+self.vision_size+1):
-                y = 0
-                if i >= self.dis_width//self.snake_block or i<0:
-                    x += 1
-                    continue
-                for j in range(self.snake2_y//10-self.vision_size,self.snake2_y//10+self.vision_size+1):
-                    if j >= self.dis_height//self.snake_block or j<0:
-                        y += 1
-                        continue
-                    vision[x][y] = snake_map[i][j]
-                    y += 1
-                x += 1
-        return vision
+        vision1 = np.full((self.vision_size*2+1, self.vision_size*2+1), -1)
+        vision2 = np.full((self.vision_size*2+1, self.vision_size*2+1), -1)
+        x = 0
+        for i in range(self.snake1_x//10-self.vision_size,self.snake1_x//10+self.vision_size+1):
+            y = 0
+            if i >= self.dis_width//self.snake_block or i<0:
+                continue
+            for j in range(self.snake1_y//10-self.vision_size,self.snake1_y//10+self.vision_size+1):
+                if j >= self.dis_height//self.snake_block or j<0:
+                    break
+                vision1[x][y] = snake_map[i][j]
+                y += 1
+            x += 1
+        x = 0
+        for i in range(self.snake2_x//10-self.vision_size,self.snake2_x//10+self.vision_size+1):
+            y = 0
+            if i >= self.dis_width//self.snake_block or i<0:
+                continue
+            for j in range(self.snake2_y//10-self.vision_size,self.snake2_y//10+self.vision_size+1):
+                if j >= self.dis_height//self.snake_block or j<0:
+                    break
+                vision2[x][y] = snake_map[i][j]
+                y += 1
+            x += 1
+
+        return vision1, vision2
 
     def reset(self):
         self.direction1 = Direction.RIGHT
@@ -321,8 +315,8 @@ class snake_game:
         elif food == 2 and not game_over:
             reward2 = 10
 
-        # if self.frame_iteration > 200:
-        #     reward1 -= 0.1
+        if self.frame_iteration > 200:
+            reward1 -= 0.1
 
         return reward1, reward2, game_over
 

@@ -9,7 +9,7 @@ from collections import namedtuple
 
 MAX_MEMORY = 100_000
 BATCH_SIZE = 1000
-STEP_SIZE = 5
+STEP_SIZE = 3
 LR = 0.001
 
 
@@ -20,7 +20,7 @@ class Agent:
         self.n_games = 0
         self.epsilon = 0 # randomness
         self.gamma = 0.9 # discount rate
-        self.memory = deque(maxlen=MAX_MEMORY) # popleft()
+        self.memory = deque(maxlen=STEP_SIZE) # popleft()
         self.model = Linear_QNet(11, 256, 3)
         self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
 
@@ -95,12 +95,16 @@ class Agent:
         #for state, action, reward, nexrt_state, done in mini_sample:
         #    self.trainer.train_step(state, action, reward, next_state, done)
 
-    def train_short_memory(self, state, action, reward, next_state, done):
-        self.trainer.train_step(state, action, reward, next_state, done)
+    def train_short_memory(self):
+        if len(self.memory) == STEP_SIZE:
+            # mini_sample = random.sample(self.memory, STEP_SIZE) # list of tuples
+
+            states, actions, rewards, next_states, dones = zip(*self.memory)
+            self.trainer.train_step(states, actions, rewards, next_states, dones)
 
     def get_action(self, state):
         # random moves: tradeoff exploration / exploitation
-        self.epsilon = 50
+        self.epsilon = 40
         final_move = [0,0,0]
         if random.randint(0, 200) < self.epsilon:
             move = random.randint(0, 2)
@@ -118,61 +122,37 @@ def train():
     plot_scores = []
     plot_mean_scores = []
     total_score = 0
-    record1 = 0
-    record2 = 0
+    record = 0
     agent1 = Agent(snake_num = 1)
-    agent2 = Agent(snake_num = 2)
     game = snake_game()
     while True:
         # get old state
-        state_old1 = agent1.get_state(game)
+        state_old = agent1.get_state(game)
 
         # get move
-        action1 = agent1.get_action(state_old1)
-
-
-        # get old state
-        state_old2 = agent2.get_state(game)
-
-        # get move
-        action2 = agent2.get_action(state_old2)
-
+        action1 = agent1.get_action(state_old)
 
         # perform move and get new state
-        reward1, reward2, done = game.play(action1, action2)
-
-        state_new1 = agent1.get_state(game)
-        state_new2 = agent2.get_state(game)
-
-        # train short memory
-        agent1.train_short_memory(state_old1, action1, reward1, state_new1, done)
+        reward1, reward2, done = game.play(action1)
+        state_new = agent1.get_state(game)
 
         # remember
-        agent1.remember(state_old1, action1, reward1, state_new1, done)
+        agent1.remember(state_old, action1, reward1, state_new, done)
 
         # train short memory
-        agent2.train_short_memory(state_old2, action2, reward2, state_new2, done)
-
-        # remember
-        agent2.remember(state_old2, action2, reward2, state_new2, done)
+        agent1.train_short_memory()
 
 
         if done:
             # train long memory, plot result
             agent1.n_games += 1
-            agent2.n_games += 1
-            agent1.train_long_memory()
-            agent2.train_long_memory()
+            # agent1.train_long_memory()
 
-            if game.score1 > record1:
-                record1 = game.score1
-                # agent1.model.save()
+            if game.score1 > record:
+                record = game.score1
+                agent1.model.save()
 
-            if game.score2 > record2:
-                record2 = game.score2
-                # agent2.model.save()
-
-            print('Game', agent1.n_games, 'Score1', game.score1, 'Score2', game.score2, 'Record1:', record1, 'Record2:', record2)
+            print('Game', agent1.n_games, 'Score', game.score1, 'Record:', record)
 
             plot_scores.append(game.score1)
             total_score += game.score1
@@ -181,6 +161,7 @@ def train():
             plot(plot_scores, plot_mean_scores)
 
             game.reset()
+            agent1.memory.clear()
 
 
 if __name__ == '__main__':
