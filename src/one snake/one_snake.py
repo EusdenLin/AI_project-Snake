@@ -21,8 +21,11 @@ class Agent:
         self.epsilon = 0 # randomness
         self.gamma = 0.9 # discount rate
         self.memory = deque(maxlen=MAX_MEMORY) # popleft()
-        self.model = Linear_QNet(9*3 + 8, 256, 256, 3)
+        self.model = Linear_QNet(11, 256, 3)
         self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
+
+
+
 
 
     def get_state(self, game):
@@ -33,12 +36,6 @@ class Agent:
             head = (game.snake2_x, game.snake2_y)
             dir = game.direction2
 
-        vision = game.get_snake_vision(self.snake_num).flatten().tolist()
-
-
-        # vision = vision.flatten().tolist()
-
-        
         block_size = game.snake_block
         point_l = (head[0] - block_size, head[1])
         point_r = (head[0] + block_size, head[1])
@@ -50,9 +47,25 @@ class Agent:
         dir_u = dir == Direction.UP
         dir_d = dir == Direction.DOWN
 
-        
-
         state = [
+            # Danger straight
+            (dir_r and game._collision(point_r)) or 
+            (dir_l and game._collision(point_l)) or 
+            (dir_u and game._collision(point_u)) or 
+            (dir_d and game._collision(point_d)),
+
+            # Danger right
+            (dir_u and game._collision(point_r)) or 
+            (dir_d and game._collision(point_l)) or 
+            (dir_l and game._collision(point_u)) or 
+            (dir_r and game._collision(point_d)),
+
+            # Danger left
+            (dir_d and game._collision(point_r)) or 
+            (dir_u and game._collision(point_l)) or 
+            (dir_r and game._collision(point_u)) or 
+            (dir_l and game._collision(point_d)),
+            
             # Move direction
             dir_l,
             dir_r,
@@ -65,8 +78,6 @@ class Agent:
             game.foody < head[1],  # food up
             game.foody > head[1]  # food down
             ]
-
-        state = state + vision
 
         return np.array(state, dtype=int)
 
@@ -89,7 +100,7 @@ class Agent:
 
     def get_action(self, state):
         # random moves: tradeoff exploration / exploitation
-        self.epsilon = 30
+        self.epsilon = 50
         final_move = [0,0,0]
         if random.randint(0, 200) < self.epsilon:
             move = random.randint(0, 2)
@@ -122,23 +133,23 @@ def train():
         # perform move and get new state
         reward1, reward2, done = game.play(action1)
 
-        if done == False:
-            state_new1 = agent1.get_state(game)
-            # print(state_new1)
-            # train short memory
-            agent1.train_short_memory(state_old1, action1, reward1, state_new1, done)
+        state_new1 = agent1.get_state(game)
 
-            # remember
-            agent1.remember(state_old1, action1, reward1, state_new1, done)
 
-        else:
+        # train short memory
+        agent1.train_short_memory(state_old1, action1, reward1, state_new1, done)
+
+        # remember
+        agent1.remember(state_old1, action1, reward1, state_new1, done)
+
+        if done:
             # train long memory, plot result
             agent1.n_games += 1
             agent1.train_long_memory()
 
             if game.score1 > record1:
                 record1 = game.score1
-                agent1.model.save()
+                # agent1.model.save()
 
             if game.score2 > record2:
                 record2 = game.score2
