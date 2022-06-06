@@ -19,9 +19,9 @@ class Agent:
         self.snake_num = snake_num
         self.n_games = 0
         self.epsilon = 0 # randomness
-        self.gamma = 0.9 # discount rate
+        self.gamma = 0.95 # discount rate
         self.memory = deque(maxlen=MAX_MEMORY) # popleft()
-        self.model = Linear_QNet(9*3 + 8, 256, 256, 3)
+        self.model = Linear_QNet(121 + 8, 256, 256, 3)
         self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
 
 
@@ -33,9 +33,9 @@ class Agent:
             head = (game.snake2_x, game.snake2_y)
             dir = game.direction2
 
-        vision = game.get_snake_vision(self.snake_num).flatten().tolist()
+        # vision = game.get_snake_vision(self.snake_num)
 
-
+        # print(vision)
         # vision = vision.flatten().tolist()
 
         
@@ -45,6 +45,30 @@ class Agent:
         point_u = (head[0], head[1] - block_size)
         point_d = (head[0], head[1] + block_size)
         
+        point = np.zeros((11, 11), int)
+        for i in range(11):
+            for j in range(11):
+                if game._collision((head[0] + block_size * (j - 5), head[1] + block_size * (i - 5))):
+                    point[i][j] = 1
+                # elif game._is_food((head[0] + block_size * (j - 1), head[1] + block_size * (i - 1))):
+                #     point[i][j] = 1
+                else:
+                    point[i][j] = 0
+                
+
+        if dir == Direction.LEFT:
+            # print("LEFT")
+            point = np.rot90(point, k = -1)
+        elif dir == Direction.DOWN:
+            # print("DOWN")
+            point = np.rot90(point, k = 2)
+        elif dir == Direction.RIGHT:
+            # print("RIGHT")
+            point = np.rot90(point, k = 1)
+        # else:
+            # print("UP")
+        # print(point)
+
         dir_l = dir == Direction.LEFT
         dir_r = dir == Direction.RIGHT
         dir_u = dir == Direction.UP
@@ -66,7 +90,7 @@ class Agent:
             game.foody > head[1]  # food down
             ]
 
-        state = state + vision
+        state = point.flatten().tolist() + state
 
         return np.array(state, dtype=int)
 
@@ -89,7 +113,7 @@ class Agent:
 
     def get_action(self, state):
         # random moves: tradeoff exploration / exploitation
-        self.epsilon = 30
+        self.epsilon = 30 - (20 if self.n_games > 2000 else self.n_games/100)
         final_move = [0,0,0]
         if random.randint(0, 200) < self.epsilon:
             move = random.randint(0, 2)
@@ -102,7 +126,7 @@ class Agent:
 
         return final_move
 
-
+history = deque(maxlen=50) # popleft()
 def train():
     plot_scores = []
     plot_mean_scores = []
@@ -114,31 +138,34 @@ def train():
     while True:
         # get old state
         state_old1 = agent1.get_state(game)
-
+        # print(state_old1)
         # get move
         action1 = agent1.get_action(state_old1)
 
 
         # perform move and get new state
         reward1, reward2, done = game.play(action1)
+        # print(reward1)
 
-        if done == False:
-            state_new1 = agent1.get_state(game)
-            # print(state_new1)
-            # train short memory
-            agent1.train_short_memory(state_old1, action1, reward1, state_new1, done)
+        state_new1 = agent1.get_state(game)
+        # print(state_new1)
+        # train short memory
+        agent1.train_short_memory(state_old1, action1, reward1, state_new1, done)
+        
+        # remember
+        agent1.remember(state_old1, action1, reward1, state_new1, done)
 
-            # remember
-            agent1.remember(state_old1, action1, reward1, state_new1, done)
-
-        else:
+        if done == True:
             # train long memory, plot result
             agent1.n_games += 1
             agent1.train_long_memory()
 
-            if game.score1 > record1:
+            if game.score1 >= record1:
                 record1 = game.score1
-                agent1.model.save()
+                agent1.model.save(file_name='best_model.pth')
+
+            if agent1.n_games % 200 == 0:
+                agent1.model.save(file_name='latest_model.pth')
 
             if game.score2 > record2:
                 record2 = game.score2
@@ -147,11 +174,16 @@ def train():
             print('Game', agent1.n_games, 'Score1', game.score1, 'Score2', game.score2, 'Record1:', record1, 'Record2:', record2)
 
             plot_scores.append(game.score1)
-            total_score += game.score1
-            mean_score = total_score / agent1.n_games
+            # total_score += game.score1
+            history.append(game.score1)
+            total_score = 0
+            for i in history:
+                total_score += i
+            mean_score = total_score / len(history)
             plot_mean_scores.append(mean_score)
             plot(plot_scores, plot_mean_scores)
-
+            # if agent1.n_games > 2000:
+            #     quit()
             game.reset()
 
 

@@ -189,10 +189,10 @@ class snake_game:
         reward1 = 0
         reward2 = 0
         if self.snake1_x >= self.dis_width or self.snake1_x < 0 or self.snake1_y >= self.dis_height or self.snake1_y < 0:
-            reward1 = -10
+            reward1 = -500
         
         if self.snake2_x >= self.dis_width or self.snake2_x < 0 or self.snake2_y >= self.dis_height or self.snake2_y < 0:
-            reward2 = -10
+            reward2 = -500
 
         return reward1, reward2
 
@@ -202,18 +202,18 @@ class snake_game:
         if next_position is None:
             for x in self.snake2_list:
                 if x == self.snake1_list[-1]: # snake1's head
-                    reward1 = -10
+                    reward1 = -500
             for x in self.snake1_list:
                 if x == self.snake2_list[-1]: # snake2's head
-                    reward2 = -10
+                    reward2 = -500
 
             # suicide
             for x in self.snake1_list[:-1]:
                 if x == (self.snake1_x, self.snake1_y):
-                    reward1 = -10
+                    reward1 = -500
             for x in self.snake2_list[:-1]:
                 if x == (self.snake2_x, self.snake2_y):
-                    reward2 = -10
+                    reward2 = -500
             return reward1, reward2
 
         else:
@@ -226,6 +226,12 @@ class snake_game:
             if next_position[0] >= self.dis_width or next_position[0] < 0 or next_position[1] >= self.dis_height or next_position[1] < 0: # out of bound
                 return True
 
+            return False
+
+    def _is_food(self, next_position=None):
+        if next_position[0] == self.foodx and next_position[1] == self.foody:
+            return True
+        else:
             return False
 
     def _found_food(self):
