@@ -148,9 +148,12 @@ def train():
             agent1.n_games += 1
             # agent1.train_long_memory()
 
-            if game.score1 > record:
+            if game.score1 >= record:
                 record = game.score1
-                agent1.model.save()
+                agent1.model.save(file_name='best_model.pth')
+
+            if agent1.n_games % 200 == 0:
+                agent1.model.save(file_name='latest_model.pth')
 
             print('Game', agent1.n_games, 'Score', game.score1, 'Record:', record)
 

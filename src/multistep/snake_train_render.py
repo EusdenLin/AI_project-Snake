@@ -5,7 +5,7 @@ from enum import Enum
 import numpy as np
 
 
-# pygame.init()
+pygame.init()
 
 class Direction(Enum):
     RIGHT = 1
@@ -23,7 +23,7 @@ class snake_game:
         self.dis_width = w
         self.dis_height = h
     
-        # self.clock = pygame.time.Clock()
+        self.clock = pygame.time.Clock()
         self.frame_iteration = 0 # if iteration larger than a constant, terminate the game and reset (avoid infinite loop)
 
         # initial place of snake 1 and snake 2 and food // should be random
@@ -32,8 +32,8 @@ class snake_game:
         self.snake1_x = random.randint(0, self.dis_width//10 - self.snake_block//10) * 10
         self.snake1_y = random.randint(0, self.dis_height//10 - self.snake_block//10) * 10
 
-        self.snake2_x = random.randint(0, self.dis_width//10 - self.snake_block//10) * 10
-        self.snake2_y = random.randint(0, self.dis_height//10 - self.snake_block//10) * 10
+        self.snake2_x = 0
+        self.snake2_y = 0
         
         self.score1 = 0
         self.score2 = 0
@@ -54,12 +54,12 @@ class snake_game:
         self.snake1_list = []
         self.snake2_list = []
 
-        self.snake_speed = 100
+        self.snake_speed = 20
         self.snake1_length = 1
         self.snake2_length = 1
 
-        # self.dis=pygame.display.set_mode((self.dis_width,self.dis_height))
-        # pygame.display.set_caption("Snake game")
+        self.dis=pygame.display.set_mode((self.dis_width,self.dis_height))
+        pygame.display.set_caption("Snake game")
 
     def get_snake_vision(self, snake_num):
         # if self.snake1_x >= self.dis_width or self.snake1_x < 0 or self.snake1_y >= self.dis_height or self.snake1_y < 0:
@@ -121,8 +121,8 @@ class snake_game:
         self.snake1_list = []
         self.snake2_list = []
 
-        self.snake1_x = random.randint(0, self.dis_width/10 - self.snake_block/10) * 10
-        self.snake1_y = random.randint(0, self.dis_height/10 - self.snake_block/10) * 10
+        self.snake1_x = random.randint(0, self.dis_width//10 - self.snake_block//10) * 10
+        self.snake1_y = random.randint(0, self.dis_height//10 - self.snake_block//10) * 10
 
         self.snake2_x = 0
         self.snake2_y = 0
@@ -133,12 +133,12 @@ class snake_game:
 
         self.foodx = round(random.randrange(0, self.dis_width - self.snake_block) / 10.0) * 10.0
         self.foody = round(random.randrange(0, self.dis_height - self.snake_block) / 10.0) * 10.0
-        # self.clock = pygame.time.Clock()
+        self.clock = pygame.time.Clock()
 
-    # def message(self, msg, color): # function to print message
-        # font_style = pygame.font.SysFont(None, 50)
-        # mesg = font_style.render(msg, True, color)
-        # self.dis.blit(mesg, [self.dis_width/2-75, self.dis_height/2-30])
+    def message(self, msg, color): # function to print message
+        font_style = pygame.font.SysFont(None, 50)
+        mesg = font_style.render(msg, True, color)
+        self.dis.blit(mesg, [self.dis_width/2-75, self.dis_height/2-30])
 
     def _move(self, action1, action2=None):
         clock_wise = [Direction.RIGHT, Direction.DOWN, Direction.LEFT, Direction.UP]
@@ -189,10 +189,10 @@ class snake_game:
         reward1 = 0
         reward2 = 0
         if self.snake1_x >= self.dis_width or self.snake1_x < 0 or self.snake1_y >= self.dis_height or self.snake1_y < 0:
-            reward1 = -10
+            reward1 = -500
         
         if self.snake2_x >= self.dis_width or self.snake2_x < 0 or self.snake2_y >= self.dis_height or self.snake2_y < 0:
-            reward2 = -10
+            reward2 = -500
 
         return reward1, reward2
 
@@ -234,7 +234,6 @@ class snake_game:
         else:
             return False
 
-
     def _found_food(self):
         if self.snake1_x == self.foodx and self.snake1_y == self.foody:
             self.foodx = round(random.randrange(0, self.dis_width - self.snake_block) / 10.0) * 10.0
@@ -272,11 +271,11 @@ class snake_game:
 
         
 
-        # for event in pygame.event.get():
-        #     if event.type == pygame.QUIT:
-        #         game_over = True
-        #         pygame.quit()
-        #         quit()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                game_over = True
+                pygame.quit()
+                quit()
             
 
         self._move(action1, action2)
@@ -290,8 +289,8 @@ class snake_game:
 
         # draw background, snake movement
 
-        # self.dis.fill(white)
-        # pygame.draw.rect(self.dis, black, [self.foodx, self.foody, self.snake_block, self.snake_block])
+        self.dis.fill(white)
+        pygame.draw.rect(self.dis, black, [self.foodx, self.foody, self.snake_block, self.snake_block])
         self.snake1_list.append((self.snake1_x, self.snake1_y))
         if len(self.snake1_list) > self.snake1_length:
             del self.snake1_list[0]
@@ -308,18 +307,18 @@ class snake_game:
 
         # draw the snake
 
-        # for x in self.snake1_list:
+        for x in self.snake1_list:
             #print(self.snake_length)
-            # pygame.draw.rect(self.dis, blue, [x[0], x[1], self.snake_block, self.snake_block])
+            pygame.draw.rect(self.dis, blue, [x[0], x[1], self.snake_block, self.snake_block])
 
-        # for x in self.snake2_list:
+        for x in self.snake2_list:
             #print(self.snake_length)
-            # pygame.draw.rect(self.dis, green, [x[0], x[1], self.snake_block, self.snake_block])
+            pygame.draw.rect(self.dis, green, [x[0], x[1], self.snake_block, self.snake_block])
 
         # if snake eats the food -> generate a food position randomly
 
-        # pygame.display.update() 
-        # self.clock.tick(self.snake_speed)
+        pygame.display.update() 
+        self.clock.tick(self.snake_speed)
 
         food = self._found_food()
         if food == 1 and not game_over:
@@ -350,7 +349,7 @@ if __name__ == '__main__':
             action2[random.randint(0,2)] = 1
             reward1, reward2, done  = game.play(action1, action2)
             print(reward1, reward2)
-            game.get_snake_vision(1)
+            game.get_snake_vision()
         print('Score1: ', game.score1, '\nScore2: ', game.score2)
         time.sleep(2)
         game.reset()

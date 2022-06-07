@@ -2,13 +2,14 @@ import torch
 import random
 import numpy as np
 from collections import deque
-from snake_train_render import snake_game, Direction
+from snake_train import snake_game, Direction
 from model import Linear_QNet, QTrainer
 from helper import plot
 from collections import namedtuple
 
 MAX_MEMORY = 100_000
 BATCH_SIZE = 1000
+STEP_SIZE = 5
 LR = 0.001
 
 
@@ -21,8 +22,6 @@ class Agent:
         self.gamma = 0.9 # discount rate
         self.memory = deque(maxlen=MAX_MEMORY) # popleft()
         self.model = Linear_QNet(11, 256, 3)
-        self.model.load_state_dict(torch.load('./model/agent_5000ep.pth'))
-        self.model.eval()
         self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
 
 
@@ -101,11 +100,16 @@ class Agent:
 
     def get_action(self, state):
         # random moves: tradeoff exploration / exploitation
+        self.epsilon = 50
         final_move = [0,0,0]
-        state0 = torch.tensor(state, dtype=torch.float)
-        prediction = self.model(state0)
-        move = torch.argmax(prediction).item()
-        final_move[move] = 1
+        if random.randint(0, 200) < self.epsilon:
+            move = random.randint(0, 2)
+            final_move[move] = 1
+        else:
+            state0 = torch.tensor(state, dtype=torch.float)
+            prediction = self.model(state0)
+            move = torch.argmax(prediction).item()
+            final_move[move] = 1
 
         return final_move
 
@@ -114,71 +118,48 @@ def train():
     plot_scores = []
     plot_mean_scores = []
     total_score = 0
-    record = 0
+    record1 = 0
+    record2 = 0
     agent1 = Agent(snake_num = 1)
     game = snake_game()
     while True:
         # get old state
-        state_old = agent1.get_state(game)
-
+        state_old1 = agent1.get_state(game)
+        # print(state_old1)
         # get move
-        action1 = agent1.get_action(state_old)
+        action1 = agent1.get_action(state_old1)
+
 
         # perform move and get new state
         reward1, reward2, done = game.play(action1)
-        state_new = agent1.get_state(game)
+
+        state_new1 = agent1.get_state(game)
+
 
         # train short memory
-        agent1.train_short_memory(state_old, action1, reward1, state_new, done)
+        agent1.train_short_memory(state_old1, action1, reward1, state_new1, done)
 
         # remember
-        agent1.remember(state_old, action1, reward1, state_new, done)
+        agent1.remember(state_old1, action1, reward1, state_new1, done)
 
         if done:
             # train long memory, plot result
             agent1.n_games += 1
             agent1.train_long_memory()
 
-            if game.score1 > record:
-                record = game.score1
-                agent1.model.save()
+            if game.score1 >= record1:
+                record1 = game.score1
+                agent1.model.save(file_name='best_model.pth')
 
-            print('Game', agent1.n_games, 'Score', game.score1, 'Record:', record)
+            if agent1.n_games % 200 == 0:
+                record1 = game.score1
+                agent1.model.save(file_name='latest_model.pth')
 
-            plot_scores.append(game.score1)
-            total_score += game.score1
-            mean_score = total_score / agent1.n_games
-            plot_mean_scores.append(mean_score)
-            plot(plot_scores, plot_mean_scores)
+            if game.score2 > record2:
+                record2 = game.score2
+                # agent2.model.save()
 
-            game.reset()
-
-def test():
-    plot_scores = []
-    plot_mean_scores = []
-    total_score = 0
-    record = 0
-    agent1 = Agent(snake_num = 1)
-    game = snake_game()
-    while True:
-        # get old state
-        state_old = agent1.get_state(game)
-
-        # get move
-        action1 = agent1.get_action(state_old)
-
-        # perform move and get new state
-        reward1, reward2, done = game.play(action1)
-
-        if done:
-            # train long memory, plot result
-            agent1.n_games += 1
-
-            if game.score1 > record:
-                record = game.score1
-                agent1.model.save()
-
-            print('Game', agent1.n_games, 'Score', game.score1, 'Record:', record)
+            print('Game', agent1.n_games, 'Score1', game.score1, 'Score2', game.score2, 'Record1:', record1, 'Record2:', record2)
 
             plot_scores.append(game.score1)
             total_score += game.score1
@@ -187,8 +168,7 @@ def test():
             plot(plot_scores, plot_mean_scores)
 
             game.reset()
-
 
 
 if __name__ == '__main__':
-    test()
+    train()

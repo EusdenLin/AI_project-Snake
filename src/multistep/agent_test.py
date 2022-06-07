@@ -14,14 +14,14 @@ LR = 0.001
 
 class Agent:
 
-    def __init__(self, snake_num=1):
+    def __init__(self, snake_num=1, file_name='best_model.pth'):
         self.snake_num = snake_num
         self.n_games = 0
         self.epsilon = 0 # randomness
         self.gamma = 0.9 # discount rate
         self.memory = deque(maxlen=MAX_MEMORY) # popleft()
         self.model = Linear_QNet(11, 256, 3)
-        self.model.load_state_dict(torch.load('./model/agent_5000ep.pth'))
+        self.model.load_state_dict(torch.load('./model/'+file_name))
         self.model.eval()
         self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
 
@@ -158,7 +158,7 @@ def test():
     plot_mean_scores = []
     total_score = 0
     record = 0
-    agent1 = Agent(snake_num = 1)
+    agent1 = Agent(snake_num = 1, file_name='model.pth')
     game = snake_game()
     while True:
         # get old state

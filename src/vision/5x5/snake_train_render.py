@@ -121,11 +121,11 @@ class snake_game:
         self.snake1_list = []
         self.snake2_list = []
 
-        self.snake1_x = random.randint(0, self.dis_width/10 - self.snake_block/10) * 10
-        self.snake1_y = random.randint(0, self.dis_height/10 - self.snake_block/10) * 10
+        self.snake1_x = random.randint(0, self.dis_width//10 - self.snake_block//10) * 10
+        self.snake1_y = random.randint(0, self.dis_height//10 - self.snake_block//10) * 10
 
-        self.snake2_x = 0
-        self.snake2_y = 0
+        self.snake2_x = random.randint(0, self.dis_width//10 - self.snake_block//10) * 10
+        self.snake2_y = random.randint(0, self.dis_height//10 - self.snake_block//10) * 10
 
         self.score1 = 0
         self.score2 = 0
@@ -202,18 +202,18 @@ class snake_game:
         if next_position is None:
             for x in self.snake2_list:
                 if x == self.snake1_list[-1]: # snake1's head
-                    reward1 = -500
+                    reward1 = -10
             for x in self.snake1_list:
                 if x == self.snake2_list[-1]: # snake2's head
-                    reward2 = -500
+                    reward2 = -10
 
             # suicide
             for x in self.snake1_list[:-1]:
                 if x == (self.snake1_x, self.snake1_y):
-                    reward1 = -500
+                    reward1 = -10
             for x in self.snake2_list[:-1]:
                 if x == (self.snake2_x, self.snake2_y):
-                    reward2 = -500
+                    reward2 = -10
             return reward1, reward2
 
         else:
