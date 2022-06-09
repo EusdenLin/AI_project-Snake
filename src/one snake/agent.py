@@ -100,7 +100,7 @@ class Agent:
 
     def get_action(self, state):
         # random moves: tradeoff exploration / exploitation
-        self.epsilon = 50
+        self.epsilon = 30 - (20 if self.n_games > 2000 else self.n_games/100)
         final_move = [0,0,0]
         if random.randint(0, 200) < self.epsilon:
             move = random.randint(0, 2)
@@ -113,7 +113,7 @@ class Agent:
 
         return final_move
 
-
+history = deque(maxlen=50) # popleft()
 def train():
     plot_scores = []
     plot_mean_scores = []
@@ -149,11 +149,11 @@ def train():
 
             if game.score1 >= record1:
                 record1 = game.score1
-                agent1.model.save(file_name='best_model.pth')
+                # agent1.model.save(file_name='best_model.pth')
 
             if agent1.n_games % 200 == 0:
                 record1 = game.score1
-                agent1.model.save(file_name='latest_model.pth')
+                # agent1.model.save(file_name='latest_model.pth')
 
             if game.score2 > record2:
                 record2 = game.score2
@@ -162,11 +162,16 @@ def train():
             print('Game', agent1.n_games, 'Score1', game.score1, 'Score2', game.score2, 'Record1:', record1, 'Record2:', record2)
 
             plot_scores.append(game.score1)
-            total_score += game.score1
-            mean_score = total_score / agent1.n_games
+            # total_score += game.score1
+            history.append(game.score1)
+            total_score = 0
+            for i in history:
+                total_score += i
+            mean_score = total_score / len(history)
             plot_mean_scores.append(mean_score)
             plot(plot_scores, plot_mean_scores)
-
+            # if agent1.n_games > 2000:
+            #     quit()
             game.reset()
 
 

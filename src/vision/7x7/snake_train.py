@@ -32,8 +32,8 @@ class snake_game:
         self.snake1_x = random.randint(0, self.dis_width//10 - self.snake_block//10) * 10
         self.snake1_y = random.randint(0, self.dis_height//10 - self.snake_block//10) * 10
 
-        self.snake2_x = random.randint(0, self.dis_width//10 - self.snake_block//10) * 10
-        self.snake2_y = random.randint(0, self.dis_height//10 - self.snake_block//10) * 10
+        self.snake2_x = 0
+        self.snake2_y = 0
         
         self.score1 = 0
         self.score2 = 0
@@ -124,8 +124,8 @@ class snake_game:
         self.snake1_x = random.randint(0, self.dis_width//10 - self.snake_block//10) * 10
         self.snake1_y = random.randint(0, self.dis_height//10 - self.snake_block//10) * 10
 
-        self.snake2_x = random.randint(0, self.dis_width//10 - self.snake_block//10) * 10
-        self.snake2_y = random.randint(0, self.dis_height//10 - self.snake_block//10) * 10
+        self.snake2_x = 0
+        self.snake2_y = 0
 
         self.score1 = 0
         self.score2 = 0

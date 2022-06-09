@@ -183,11 +183,11 @@ def train():
 
             if game.score1 >= record1:
                 record1 = game.score1
-                agent1.model.save(file_name='snake1_best_model.pth')
+                # agent1.model.save(file_name='snake1_best_model.pth')
 
             if game.score2 >= record2:
                 record2 = game.score2
-                agent2.model.save(file_name='snake2_best_model.pth')
+                # agent2.model.save(file_name='snake2_best_model.pth')
 
             if game.score2 > record2:
                 record2 = game.score2

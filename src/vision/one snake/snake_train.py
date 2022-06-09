@@ -189,10 +189,10 @@ class snake_game:
         reward1 = 0
         reward2 = 0
         if self.snake1_x >= self.dis_width or self.snake1_x < 0 or self.snake1_y >= self.dis_height or self.snake1_y < 0:
-            reward1 = -10
+            reward1 = -20
         
         if self.snake2_x >= self.dis_width or self.snake2_x < 0 or self.snake2_y >= self.dis_height or self.snake2_y < 0:
-            reward2 = -10
+            reward2 = -20
 
         return reward1, reward2
 
@@ -268,7 +268,7 @@ class snake_game:
         # if self.frame_iteration > 100*max(self.snake1_length, self.snake2_length): 
         #     game_over = True
 
-        if self.frame_iteration > 500: 
+        if self.frame_iteration > 300: 
             game_over = True
 
 
@@ -330,8 +330,8 @@ class snake_game:
         elif food == 2 and not game_over:
             reward2 = 10
 
-        if self.frame_iteration > 200:
-            reward1 -= 0.1
+        if self.frame_iteration > 50:
+            reward1 -= 1
 
         return reward1, reward2, game_over
 

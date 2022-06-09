@@ -135,7 +135,7 @@ def train():
     record1 = 0
     record2 = 0
     agent1 = Agent(snake_num = 1)
-    agent2 = Agent(snake_num = 2)
+    # agent2 = Agent(snake_num = 2)
     game = snake_game()
     while True:
         # get old state
@@ -145,15 +145,15 @@ def train():
         action1 = agent1.get_action(state_old1)
 
         # get old state
-        state_old2 = agent2.get_state(game)
+        # state_old2 = agent2.get_state(game)
 
         # get move
-        action2 = agent2.get_action(state_old2)
+        # action2 = agent2.get_action(state_old2)
 
 
 
         # perform move and get new state
-        reward1, reward2, done = game.play(action1, action2)
+        reward1, reward2, done = game.play(action1)
 
         state_new1 = agent1.get_state(game)
 
@@ -164,28 +164,28 @@ def train():
         agent1.remember(state_old1, action1, reward1, state_new1, done)
 
 
-        state_new2 = agent2.get_state(game)
+        # state_new2 = agent2.get_state(game)
 
         # train short memory
-        agent2.train_short_memory(state_old2, action2, reward2, state_new2, done)
+        # agent2.train_short_memory(state_old2, action2, reward2, state_new2, done)
         
         # remember
-        agent2.remember(state_old2, action2, reward2, state_new2, done)
+        # agent2.remember(state_old2, action2, reward2, state_new2, done)
 
         if done == True:
             # train long memory, plot result
             agent1.n_games += 1
-            agent2.n_games += 1
+            # agent2.n_games += 1
             agent1.train_long_memory()
-            agent2.train_long_memory()
+            # agent2.train_long_memory()
 
             if game.score1 >= record1:
                 record1 = game.score1
-                agent1.model.save(file_name='snake1_best_model.pth')
+                # agent1.model.save(file_name='snake1_best_model.pth')
 
             if game.score2 >= record2:
                 record2 = game.score2
-                agent2.model.save(file_name='snake2_best_model.pth')
+                # agent2.model.save(file_name='snake2_best_model.pth')
 
             if game.score2 > record2:
                 record2 = game.score2
@@ -205,6 +205,8 @@ def train():
             # if agent1.n_games > 2000:
             #     quit()
             game.reset()
+            if agent1.n_games > 8000:
+                quit()
 
 
 if __name__ == '__main__':

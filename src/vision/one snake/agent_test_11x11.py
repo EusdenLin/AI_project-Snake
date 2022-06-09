@@ -17,13 +17,13 @@ class Agent:
 
     def __init__(self, snake_num=1, file_name='snake1_best_model.pth'):
 
-        self.vision_size = 21
+        self.vision_size = 11
         self.snake_num = snake_num
         self.n_games = 0
         self.epsilon = 0 # randomness
         self.gamma = 0.95 # discount rate
         self.memory = deque(maxlen=MAX_MEMORY) # popleft()
-        self.model = Linear_QNet(441, 512, 256, 3)
+        self.model = Linear_QNet(121, 256, 256, 3)
         self.model.load_state_dict(torch.load('./model/'+file_name))
         self.model.eval()
         self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
