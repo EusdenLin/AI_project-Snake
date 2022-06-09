@@ -202,20 +202,20 @@ class snake_game:
         if next_position is None:
             for x in self.snake2_list:
                 if x == self.snake1_list[-1]: # snake1's head
-                    reward1 -= 20
-                    reward2 += 10
+                    reward1 -= 10
+                    # reward2 += 10
             for x in self.snake1_list:
                 if x == self.snake2_list[-1]: # snake2's head
-                    reward1 += 10
-                    reward2 -= 20
+                    # reward1 += 10
+                    reward2 -= 10
 
             # suicide
             for x in self.snake1_list[:-1]:
                 if x == (self.snake1_x, self.snake1_y):
-                    reward1 = -20
+                    reward1 = -10
             for x in self.snake2_list[:-1]:
                 if x == (self.snake2_x, self.snake2_y):
-                    reward2 = -20
+                    reward2 = -10
             return reward1, reward2
 
         else:
